@@ -138,6 +138,9 @@ const SCORE_METRICS = [
 // ===== STATE =====
 let activePhones = new Set(PHONES.map(p=>p.id));
 let activeCats = new Set(CATEGORIES.map(c=>c.id));
+let duelMode = false;
+let sortState = { catId: null, asc: true };
+let radarChart = null;
 
 // ===== PLACEHOLDER SVG =====
 const PLACEHOLDER_SVG = 'data:image/svg+xml,' + encodeURIComponent(
@@ -155,13 +158,82 @@ function esc(str) {
   return d.innerHTML;
 }
 
+// ===== HELPERS =====
+function getPrice(p){
+  const m = String(p.price).match(/(\d+)/);
+  return m ? parseInt(m[1]) : 999;
+}
+
+function getRadarScores(p){
+  return {
+    perf: Math.min(num(p.specs.perf.antutu) / 7600, 100),
+    batterie: Math.min(num(p.specs.batterie.capacite) / 70, 100),
+    charge: Math.min(num(p.specs.batterie.charge) * 1.5, 100),
+    ecran: Math.min(num(p.specs.ecran.luminosite) / 25, 100),
+    ram: Math.min(num(p.specs.perf.ram) * 12.5, 100),
+  };
+}
+
+function renderRadar(){
+  const canvas = document.getElementById('radarChart');
+  const wrap = document.getElementById('radarWrap');
+  if (!canvas || !wrap) return;
+  const active = PHONES.filter(p => activePhones.has(p.id) && getPrice(p) <= maxBudget);
+  if (active.length < 2) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+
+  if (typeof Chart === 'undefined') return;
+
+  if (radarChart) radarChart.destroy();
+
+  const labels = ['Perf','Batterie','Charge','Écran','RAM'];
+  const colors = ['#fbbf24','#94a3b8','#cd7f32','#6b7280','#6b7280'];
+
+  const radarKeys = { Perf:'perf', Batterie:'batterie', Charge:'charge', 'Écran':'ecran', RAM:'ram' };
+  radarChart = new Chart(canvas, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: active.map((p,i) => {
+        const s = getRadarScores(p);
+        return {
+          label: p.short,
+          data: labels.map(l => s[radarKeys[l]] || 0),
+          borderColor: colors[p.rank-1] || '#6b7280',
+          backgroundColor: (colors[p.rank-1] || '#6b7280') + '22',
+          pointBackgroundColor: colors[p.rank-1] || '#6b7280',
+          borderWidth: 2,
+        };
+      }),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, backdropColor:'transparent', color:'#8888bb' }, grid: { color:'#2a2a4a' }, angleLines: { color:'#2a2a4a' }, pointLabels: { color:'#e0e0f0', font: { size:11 } } } },
+      plugins: { legend: { labels: { color:'#e0e0f0', font: { size:11 }, boxWidth:12, padding:12 } } },
+    },
+  });
+}
+
+let maxBudget = 300;
+function applyPriceFilter(){
+  PHONES.forEach(p => {
+    const cards = document.querySelectorAll(`.phone-card[data-phone="${p.id}"]`);
+    const chips = document.querySelectorAll(`.filter-chip[data-phone="${p.id}"]`);
+    const hidden = getPrice(p) > maxBudget;
+    cards.forEach(c => c.classList.toggle('hidden', hidden || !activePhones.has(p.id)));
+    chips.forEach(c => c.style.display = hidden ? 'none' : '');
+  });
+}
+
 // ===== RENDER FUNCTIONS =====
 function renderPhoneStrip(){
   const strip = document.getElementById('phoneStrip');
   if (!strip) return;
-  strip.innerHTML = PHONES.map(p => {
+  strip.innerHTML = PHONES.filter(p => getPrice(p) <= maxBudget).map(p => {
     const isActive = activePhones.has(p.id);
-    return '<div class="phone-card' + (isActive ? '' : ' hidden') + '" data-phone="' + esc(p.id) + '">' +
+    const selected = duelMode && isActive;
+    return '<div class="phone-card' + (isActive ? '' : ' hidden') + (selected ? ' selected' : '') + '" data-phone="' + esc(p.id) + '">' +
       '<div class="rank rank-' + p.rank + '"><i class="fas ' + esc(p.tagIcon) + '"></i></div>' +
       '<div class="img-wrap">' +
         '<img src="' + p.img + '" alt="' + esc(p.name) + '" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML=\'<div class=placeholder>\u2606</div>\'">' +
@@ -191,15 +263,34 @@ function renderPhoneFilters(){
   el.querySelectorAll('.filter-chip').forEach(label => {
     label.addEventListener('click', function(e){
       e.preventDefault();
-      // Don't toggle if clicking the warn span
       if (e.target.closest && e.target.closest('.warn')) return;
       const inp = this.querySelector('input');
       if (!inp) return;
-      inp.checked = !inp.checked;
-      this.classList.toggle('active', inp.checked);
       const pid = this.dataset.phone;
-      if (inp.checked) activePhones.add(pid);
-      else activePhones.delete(pid);
+      if (duelMode) {
+        // In duel mode: clicking an active phone deselects it; clicking an inactive one selects only it (if none selected) or becomes 2nd
+        if (activePhones.has(pid)) {
+          activePhones.delete(pid);
+        } else if (activePhones.size < 2) {
+          activePhones.add(pid);
+        } else {
+          // Replace the first selected
+          const first = activePhones.values().next().value;
+          activePhones.delete(first);
+          activePhones.add(pid);
+        }
+      } else {
+        inp.checked = !inp.checked;
+        if (inp.checked) activePhones.add(pid);
+        else activePhones.delete(pid);
+      }
+      // Sync checkboxes
+      el.querySelectorAll('.filter-chip').forEach(l => {
+        const li = l.querySelector('input');
+        if (!li) return;
+        li.checked = activePhones.has(l.dataset.phone);
+        l.classList.toggle('active', li.checked);
+      });
       renderAll();
     });
   });
@@ -263,17 +354,32 @@ function renderTable(){
   activePhoneArr.forEach(p => { html += '<th data-col="' + p.id + '">' + esc(p.short) + '</th>'; });
   html += '</tr></thead><tbody>';
 
+  const sortedPhones = [...activePhoneArr];
+  if (sortState.catId) {
+    const sortCat = CATEGORIES.find(c => c.id === sortState.catId);
+    if (sortCat) {
+      const sortKey = sortCat.keys[0];
+      sortedPhones.sort((a, b) => {
+        const va = num(a.specs[sortState.catId] && a.specs[sortState.catId][sortKey]);
+        const vb = num(b.specs[sortState.catId] && b.specs[sortState.catId][sortKey]);
+        return sortState.asc ? va - vb : vb - va;
+      });
+    }
+  }
+
   CATEGORIES.forEach(cat => {
     if (!activeCats.has(cat.id)) return;
-    html += '<tr class="cat-header"><td colspan="' + (activePhoneArr.length + 1) + '">' + cat.label + '</td></tr>';
+    const isSorted = sortState.catId === cat.id;
+    const arrow = isSorted ? (sortState.asc ? ' \u25B2' : ' \u25BC') : ' \u25B4\u25BE';
+    const sortClass = 'cat-header sortable' + (isSorted ? (sortState.asc ? ' sort-asc' : ' sort-desc') : '');
+    html += '<tr class="' + sortClass + '" data-cat="' + cat.id + '"><td colspan="' + (activePhoneArr.length + 1) + '"><span class="sort-arrow">' + arrow + '</span> ' + cat.label + '</td></tr>';
     cat.keys.forEach(key => {
       html += '<tr>';
       html += '<td>' + (CAT_ALIAS[key] || key) + '</td>';
-      activePhoneArr.forEach(p => {
+      sortedPhones.forEach(p => {
         const val = p.specs[cat.id] && p.specs[cat.id][key] !== undefined ? String(p.specs[cat.id][key]) : '\u2014';
         const hasStar = val.indexOf('\u2b50') !== -1;
         const hasCross = val.indexOf('\u274c') !== -1;
-        // Remove stars for display
         const displayVal = val.replace(/\u2b50/g, '').trim();
         html += '<td data-col="' + p.id + '" class="' + (hasStar ? 'winner' : hasCross ? 'loser' : '') + '">' + displayVal + '</td>';
       });
@@ -302,6 +408,22 @@ function renderTable(){
     th.addEventListener('mouseleave', function(){
       const col = this.dataset.col;
       el.querySelectorAll('td[data-col="' + col + '"], th[data-col="' + col + '"]').forEach(c => c.classList.remove('highlight'));
+    });
+  });
+
+  // Sort click handlers
+  el.querySelectorAll('.cat-header.sortable').forEach(tr => {
+    tr.addEventListener('click', function(){
+      const catId = this.dataset.cat;
+      if (sortState.catId === catId) {
+        sortState.asc = !sortState.asc;
+      } else {
+        sortState.catId = catId;
+        sortState.asc = true;
+      }
+      renderTable();
+      renderVerdict();
+      renderRadar();
     });
   });
 }
@@ -451,12 +573,44 @@ function renderReadme(){
 }
 
 function renderAll(){
+  document.body.classList.toggle('duel-active', duelMode);
+  applyPriceFilter();
   renderPhoneStrip();
   renderScoreBars();
   renderTable();
   renderVerdict();
   renderReco();
   renderBoxContent();
+  renderRadar();
+}
+
+// ===== FEATURES INIT =====
+function initDuel(){
+  const btn = document.getElementById('duelToggle');
+  if (!btn) return;
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    duelMode = !duelMode;
+    this.classList.toggle('active', duelMode);
+    this.querySelector('input').checked = duelMode;
+    if (duelMode && activePhones.size > 2) {
+      // Keep only first 2
+      const arr = [...activePhones];
+      activePhones = new Set(arr.slice(0,2));
+    }
+    renderAll();
+  });
+}
+
+function initBudget(){
+  const range = document.getElementById('budgetRange');
+  const val = document.getElementById('budgetVal');
+  if (!range || !val) return;
+  range.addEventListener('input', function(){
+    maxBudget = parseInt(this.value);
+    val.textContent = maxBudget;
+    renderAll();
+  });
 }
 
 // ===== FILTER INIT =====
@@ -530,12 +684,15 @@ document.addEventListener('DOMContentLoaded', function(){
   try {
     renderPhoneStrip();
     initFilters();
+    initDuel();
+    initBudget();
     renderScoreBars();
     renderTable();
     renderVerdict();
     renderReco();
     renderBoxContent();
     renderReadme();
+    renderRadar();
     initTabs();
     initTheme();
     initBackTop();

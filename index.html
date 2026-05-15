@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -42,6 +43,10 @@
   <div class="filters">
     <div class="filters-label"><i class="fas fa-mobile-screen-button"></i> Téléphones <span class="filter-actions"><button class="filter-action-btn" id="selectAllPhones" title="Tout sélectionner">Tous</button> · <button class="filter-action-btn" id="selectNonePhones" title="Tout désélectionner">Aucun</button></span></div>
     <div class="filter-group" id="phoneFilters"></div>
+    <div class="filter-group">
+      <label class="filter-chip" id="duelToggle" style="cursor:pointer"><input type="checkbox"><span class="dot"></span> <i class="fas fa-crosshairs"></i> Duel</label>
+      <label class="filter-chip" id="filterBudget" style="cursor:default;gap:8px"><span style="font-size:11px;white-space:nowrap"><i class="fas fa-sliders"></i> ≤<span id="budgetVal">300</span>€</span><input type="range" id="budgetRange" min="150" max="400" value="300" style="width:80px;accent-color:var(--accent);cursor:pointer"></label>
+    </div>
     <div style="flex:1;min-width:20px"></div>
     <div class="filters-label"><i class="fas fa-layer-group"></i> Catégories</div>
     <div class="filter-group" id="catFilters">
@@ -60,6 +65,12 @@
 
   <!-- SCORE BARS -->
   <div id="scoreBars"></div>
+
+  <!-- RADAR -->
+  <div class="radar-wrap" id="radarWrap">
+    <h2 class="section-title"><i class="fas fa-spider" style="color:var(--accent)"></i> Radar comparatif</h2>
+    <div class="radar-chart-container"><canvas id="radarChart"></canvas></div>
+  </div>
 
   <!-- TABLE -->
   <div class="table-wrap" id="tableWrap"></div>

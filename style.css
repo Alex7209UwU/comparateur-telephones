@@ -331,6 +331,28 @@ th[data-col].hidden-col{display:none}
 }
 .filter-action-btn:hover{text-decoration:underline;color:var(--pink)}
 
+/* DUEL MODE */
+.duel-active .phone-card.selected{box-shadow:0 0 0 2px var(--accent),0 0 20px rgba(124,92,252,.3)}
+.duel-active .phone-card:not(.selected):not(.hidden){opacity:.5;pointer-events:none}
+.duel-active .phone-card{transition:all var(--transition)}
+#duelToggle.active{background:rgba(124,92,252,.2);border-color:var(--accent);color:var(--accent)}
+
+/* PRICE FILTER */
+#filterBudget{display:inline-flex;align-items:center}
+
+/* RADAR CHART */
+.radar-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+.radar-wrap .section-title{margin:0 0 16px}
+.radar-chart-container{position:relative;width:100%;max-width:500px;margin:0 auto}
+#radarChart{width:100%!important;height:auto!important;max-height:400px}
+
+/* SORT INDICATOR */
+.cat-header.sortable{cursor:pointer;user-select:none}
+.cat-header.sortable:hover{background:rgba(124,92,252,.12)!important}
+.cat-header .sort-arrow{display:inline-block;margin-left:6px;font-size:10px;opacity:.5}
+.cat-header.sort-asc .sort-arrow{opacity:1;color:var(--green)}
+.cat-header.sort-desc .sort-arrow{opacity:1;color:var(--red)}
+
 /* SCORE BARS */
 .score-bars{
   background:var(--card);border:1px solid var(--border);
