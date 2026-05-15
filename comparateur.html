@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparateur Smartphones - Moins de 200€ (Mai 2026)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <i class="fas fa-microchip"></i>
+      <span>Comparateur <span class="desk">Smartphones</span></span>
+    </div>
+    <div class="header-controls">
+      <div class="tabs" id="tabs">
+        <button class="tab-btn active" data-tab="comparatif"><i class="fas fa-table"></i> <span class="desk">Comparatif</span><span class="mob-only">Comparer</span></button>
+        <button class="tab-btn" data-tab="readme"><i class="fas fa-book"></i> <span class="desk">README</span><span class="mob-only">Infos</span></button>
+      </div>
+      <button class="theme-toggle" id="themeToggle" title="Changer le thème" aria-label="Changer le thème">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- TAB: COMPARATIF -->
+<div class="tab-content active" id="tab-comparatif">
+
+  <!-- PHONE STRIP -->
+  <div class="phone-strip" id="phoneStrip"></div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <div class="filters-label"><i class="fas fa-mobile-screen-button"></i> Téléphones <span class="filter-actions"><button class="filter-action-btn" id="selectAllPhones" title="Tout sélectionner">Tous</button> · <button class="filter-action-btn" id="selectNonePhones" title="Tout désélectionner">Aucun</button></span></div>
+    <div class="filter-group" id="phoneFilters"></div>
+    <div style="flex:1;min-width:20px"></div>
+    <div class="filters-label"><i class="fas fa-layer-group"></i> Catégories</div>
+    <div class="filter-group" id="catFilters">
+      <label class="filter-chip active" data-cat="all"><input type="checkbox" data-cat="all" checked> <span class="dot"></span> Toutes</label>
+      <label class="filter-chip active" data-cat="prix"><input type="checkbox" data-cat="prix" checked> <span class="dot"></span> Prix</label>
+      <label class="filter-chip active" data-cat="perf"><input type="checkbox" data-cat="perf" checked> <span class="dot"></span> Perf</label>
+      <label class="filter-chip active" data-cat="ecran"><input type="checkbox" data-cat="ecran" checked> <span class="dot"></span> Écran</label>
+      <label class="filter-chip active" data-cat="batterie"><input type="checkbox" data-cat="batterie" checked> <span class="dot"></span> Batterie</label>
+      <label class="filter-chip active" data-cat="photo"><input type="checkbox" data-cat="photo" checked> <span class="dot"></span> Photo</label>
+      <label class="filter-chip active" data-cat="design"><input type="checkbox" data-cat="design" checked> <span class="dot"></span> Design</label>
+      <label class="filter-chip active" data-cat="logiciel"><input type="checkbox" data-cat="logiciel" checked> <span class="dot"></span> Logiciel</label>
+      <label class="filter-chip active" data-cat="connectivite"><input type="checkbox" data-cat="connectivite" checked> <span class="dot"></span> Connectivité</label>
+      <label class="filter-chip active" data-cat="ia"><input type="checkbox" data-cat="ia" checked> <span class="dot"></span> IA</label>
+    </div>
+  </div>
+
+  <!-- SCORE BARS -->
+  <div id="scoreBars"></div>
+
+  <!-- TABLE -->
+  <div class="table-wrap" id="tableWrap"></div>
+
+  <!-- BOÎTE -->
+  <div id="boxContent"></div>
+
+  <!-- VIDEOS -->
+  <h2 class="section-title"><i class="fab fa-youtube" style="color:#ff0000"></i> Vidéos comparatives</h2>
+  <div class="video-links">
+    <p style="color:var(--text2);font-size:13px;margin-bottom:10px">Clique sur un lien pour voir les vidéos sur YouTube :</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <a class="video-link" href="https://www.youtube.com/results?search_query=meilleur+smartphone+200+euros+2026" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Meilleurs -200€ 2026</a>
+      <a class="video-link" href="https://www.youtube.com/results?search_query=motorola+edge+50+fusion+test+avis" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Motorola Edge 50 Fusion</a>
+      <a class="video-link" href="https://www.youtube.com/results?search_query=honor+600+lite+test+avis" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Honor 600 Lite 5G</a>
+      <a class="video-link" href="https://www.youtube.com/results?search_query=xiaomi+redmi+note+14+5g+test" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Xiaomi Redmi Note 14</a>
+      <a class="video-link" href="https://www.youtube.com/results?search_query=xiaomi+redmi+15+5g+test" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Xiaomi Redmi 15 5G</a>
+      <a class="video-link" href="https://www.youtube.com/results?search_query=realme+14+5g+test" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Realme 14 5G</a>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <h2 class="section-title"><i class="fas fa-trophy" style="color:var(--gold)"></i> Verdict</h2>
+  <div class="verdict-grid" id="verdictGrid"></div>
+
+  <!-- RECO -->
+  <div class="reco-box" id="recoBox"></div>
+</div>
+
+<!-- TAB: README -->
+<div class="tab-content" id="tab-readme">
+  <div class="readme-content" id="readmeContent"></div>
+</div>
+
+</div>
+
+<footer style="text-align:center;padding:28px 24px;color:var(--text2);font-size:12px;border-top:1px solid var(--border);margin-top:20px">
+  <p>Comparatif généré le 11 Mai 2026 · <a href="#" style="color:var(--accent);text-decoration:none" id="footerReadmeLink">Voir les sources</a></p>
+</footer>
+
+<!-- BACK TO TOP -->
+<button class="back-top" id="backTop" aria-label="Retour en haut"><i class="fas fa-arrow-up"></i></button>
+
+<script src="script.js"></script>
+</body>
+</html>
